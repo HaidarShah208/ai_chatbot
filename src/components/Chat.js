@@ -7,9 +7,11 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
 
   const generateAnswer = async () => {
-    if (!question.trim()) return;  
+    if (!question.trim()) return;
     try {
       setLoading(true);
+      setQuestion(''); 
+
 
       setMessages((prev) => [...prev, { role: 'user', text: question }]);
 
@@ -22,13 +24,21 @@ export default function Chat() {
       const aiResponse =
         response.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
 
+      // Add AI's response to the chat
       setMessages((prev) => [...prev, { role: 'ai', text: aiResponse }]);
     } catch (e) {
       console.error(e);
       setMessages((prev) => [...prev, { role: 'ai', text: 'Error generating response' }]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();  
       setQuestion('');  
+      generateAnswer();  
     }
   };
 
@@ -48,7 +58,7 @@ export default function Chat() {
         overflow: 'hidden',
       }}
     >
-      <h2>  CHAT AI</h2>
+      <h2>CHAT AI</h2>
       <div
         style={{
           flex: 1,
@@ -63,17 +73,19 @@ export default function Chat() {
               marginBottom: '10px',
               padding: '10px',
               borderRadius: '8px',
-              maxWidth: '70%',
-              textAlign: 'left',
+              maxWidth: '100%',
               backgroundColor: msg.role === 'user' ? '#0056b3' : '#d3d3d3',
               color: msg.role === 'user' ? '#fff' : '#000',
               alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              alignItems:msg.role === 'user' ?'flex-end':'flex-start'
-            }}>
+              textAlign: msg.role === 'user' ? 'right' : 'left',
+            }}
+          >
             <strong>{msg.role === 'user' ? 'You' : 'AI'}:</strong> {msg.text}
           </div>
         ))}
       </div>
+
+      {loading?<span class="loader"></span>:''}
       <div
         style={{
           display: 'flex',
@@ -87,6 +99,7 @@ export default function Chat() {
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={handleKeyDown} // Listen for Enter key
           placeholder="Type your question..."
           style={{
             flex: 1,
@@ -108,7 +121,7 @@ export default function Chat() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {loading ? 'Generating...' : 'Send'}
+          Send
         </button>
       </div>
     </div>
